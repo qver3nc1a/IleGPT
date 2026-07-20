@@ -3,16 +3,16 @@ Building a GPT-style language model (following Sebastian Raschka's Build a Large
 Implemented, pre-trained and fine-tuned using PyTorch.
 
 ## Progress
-🔸 Tokenizer
-🔸 Data Loader
-🔸 Embeddings
-🔸 Self-Attention
-🔸 Multi-Head Attention
-🔸 Transformer Block
-🔸 GPT Model
-🔸 Training
-🔸 Fine-tuning
-🔸 Text Generation
+- 🔸 Tokenizer
+- 🔸 Data Loader
+- 🔸 Embeddings
+- 🔸 Self-Attention
+- 🔸 Multi-Head Attention
+- 🔸 Transformer Block
+- 🔸 GPT Model
+- 🔸 Training
+- 🔸 Fine-tuning
+- 🔸 Text Generation
 
 ## Model parameters
 | Parameter | Value |
