@@ -99,6 +99,34 @@ class FeedForward(nn.Module):
         return self.layers(x)
 
 
+# shortcut connections
+class ExampleDeepNeuralNetwork(nn.Module):
+    def __init__(self, layer_sizes, use_shortcut):
+        super().__init__()
+        self.use_shortcut = use_shortcut
+        self.layers = nn.ModuleList(
+            [
+                nn.Sequential(nn.Linear(layer_sizes[0], layer_sizes[1], GELU())),
+                nn.Sequential(nn.Linear(layer_sizes[1], layer_sizes[2], GELU())),
+                nn.Sequential(nn.Linear(layer_sizes[2], layer_sizes[3], GELU())),
+                nn.Sequential(nn.Linear(layer_sizes[3], layer_sizes[4], GELU())),
+                nn.Sequential(nn.Linear(layer_sizes[4], layer_sizes[5], GELU())),
+            ]
+        )
+
+    def forward(self, x):
+        for layer in self.layers:
+            layer_output = layer(x)
+            if self.use_shortcut and x.shape == layer_output.shape:
+                x += layer_output
+            else:
+                x = layer_output
+        return x
+
+
+##########################################################################################################
+
+
 # tokenize a batch consisting of two inputs
 import tiktoken
 
@@ -109,43 +137,43 @@ txt2 = "Every day holds a"
 batch.append(torch.tensor(tokenizer.encode(txt1)))
 batch.append(torch.tensor(tokenizer.encode(txt2)))
 batch = torch.stack(batch, dim=0)
-print(batch)
+# print(batch)
 
 # initialize a new 124-million parameter DummyGPTModel instance and feed it the tokenized batch
 torch.manual_seed(123)
 model = DummyGPTModel(GPT_CONFIG_124M)
 logits = model(batch)
-print("Output shape:", logits.shape)
-print(logits)
+# print("Output shape:", logits.shape)
+# print(logits)
 
 # a neural network layer with five inputs and six outputs applied to two examples
 torch.manual_seed(123)
 batch_example = torch.randn(2, 5)
 layer = nn.Sequential(nn.Linear(5, 6), nn.ReLU())
 out = layer(batch_example)
-print(out)
+# print(out)
 
 # mean and variance
 mean = out.mean(dim=-1, keepdim=True)
 var = out.var(dim=-1, keepdim=True)
-print("Mean:\n", mean)
-print("Variance:\n", var)
+# print("Mean:\n", mean)
+# print("Variance:\n", var)
 
 # layer normalization
 out_norm = (out - mean) / torch.sqrt(var)
 mean = out_norm.mean(dim=-1, keepdim=True)
 var = out_norm.var(dim=-1, keepdim=True)
-print("Normalized layer outputs:\n", out_norm)
-print("Mean:\n", mean)
-print("Variance:\n", var)
+# print("Normalized layer outputs:\n", out_norm)
+# print("Mean:\n", mean)
+# print("Variance:\n", var)
 
 # normalization with LayerNorm module
 ln = LayerNorm(emb_dim=5)
 out_ln = ln(batch_example)
 mean = out_ln.mean(dim=-1, keepdim=True)
 var = out_ln.var(dim=-1, unbiased=False, keepdim=True)
-print("Mean:\n", mean)
-print("Variance:\n", var)
+# print("Mean:\n", mean)
+# print("Variance:\n", var)
 
 # plot ReLU vs GELU
 import matplotlib.pyplot as plt
@@ -164,4 +192,36 @@ for i, (y, label) in enumerate(zip([y_gelu, y_relu], ["GELU", "ReLU"]), 1):
     plt.ylabel(f"{label}(x)")
     plt.grid(True)
 plt.tight_layout()
-plt.show()
+# plt.show()
+
+# FeedForward module
+
+ffn = FeedForward(GPT_CONFIG_124M)
+x = torch.rand(2, 3, 768)
+out = ffn(x)
+print(out.shape)
+
+# neural network without shortcut connections
+
+layer_sizes = [3, 3, 3, 3, 3, 1]
+sample_output = torch.tensor([1.0, 0.0, -1.0])
+torch.manual_seed(123)
+model_without_shortcut = ExampleDeepNeuralNetwork(layer_sizes, use_shortcut=False)
+
+
+# function that computes gradients in backward pass
+def print_gradients(model, x):
+    # forward pass
+    output = model(x)
+    target = torch.tensor([[0.0]])
+
+    # loss
+    loss = nn.MSELoss()
+    loss = loss(output, target)
+
+    # backward pass (calculate gradients)
+    loss.backward()
+
+    for name, param in model.named_parameters():
+        if "weight" in name:
+            print(f"{name} has gradient mean of {param.grad.abs().mean().item()}")
