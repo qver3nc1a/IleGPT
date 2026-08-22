@@ -236,8 +236,8 @@ if __name__ == "__main__":
     # number of characters and tokens
     total_characters = len(text_data)
     total_tokens = len(tokenizer.encode(text_data))
-    print("Characters:", total_characters)
-    print("Tokens:", total_tokens)
+    # print("Characters:", total_characters)
+    # print("Tokens:", total_tokens)
 
     # divide into training and validation sets
     train_ratio = 0.9
@@ -270,12 +270,12 @@ if __name__ == "__main__":
     )
 
     # check dataloaders
-    print("Train loader:")
-    for x, y in train_loader:
-        print(x.shape, y.shape)
-    print("\nValidation loader:")
-    for x, y in val_loader:
-        print(x.shape, y.shape)
+    # print("Train loader:")
+    # for x, y in train_loader:
+    # print(x.shape, y.shape)
+    # print("\nValidation loader:")
+    # for x, y in val_loader:
+    # print(x.shape, y.shape)
 
     # apply loss function to training and validation batches
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -283,5 +283,26 @@ if __name__ == "__main__":
     with torch.no_grad():
         train_loss = calc_loss_loader(train_loader, model, device)
         val_loss = calc_loss_loader(val_loader, model, device)
-    print("Training loss: ", train_loss)
-    print("Validation loss: ", val_loss)
+    # print("Training loss: ", train_loss)
+    # print("Validation loss: ", val_loss)
+
+torch.manual_seed(123)
+model = IleGPT(GPT_CONFIG_124M)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+tokenizer = tiktoken.get_encoding("gpt2")
+num_epochs = 10
+
+train_losses, val_losses, tokens_seen = train_model_simple(
+    model,
+    train_loader,
+    val_loader,
+    optimizer,
+    device,
+    num_epochs=num_epochs,
+    eval_freq=5,
+    eval_iter=5,
+    start_context="Every effort moves you",
+    tokenizer=tokenizer,
+)
