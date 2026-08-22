@@ -26,8 +26,8 @@ import tiktoken
 def generate_text_simple(
     model, idx, max_new_tokens, context_size
 ):  # idx is a (batch, n_tokens) array of indices
-    print(idx)
-    print(idx.shape)
+    # print(idx)
+    # print(idx.shape)
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -context_size:]  # crop content if exceeds context size
         with torch.no_grad():
